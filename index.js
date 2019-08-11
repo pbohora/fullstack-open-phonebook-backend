@@ -1,4 +1,6 @@
 const express = require("express");
+const bodyParser = require("body-parser");
+const morgan = require("morgan");
 
 const app = express();
 
@@ -25,6 +27,12 @@ let persons = [
   }
 ];
 
+app.use(bodyParser.json());
+
+morgan.token("type", function(req, res) {
+  return ` ${JSON.stringify(req.body)} `;
+});
+
 app.get("/info", (req, res, next) => {
   const date = new Date();
   res.send(`<p>phonebook has info for ${persons.length} persons </p>  ${date}`);
@@ -42,6 +50,31 @@ app.get("/api/persons/:id", (req, res, next) => {
   } else {
     res.status(404).send(`No person found with id ${id}`);
   }
+});
+
+app.use(morgan("tiny"));
+app.use(morgan("Type: :type"));
+
+app.post("/api/persons", (req, res, next) => {
+  const person = req.body;
+  const id = Math.floor(Math.random() * 100 + 1);
+  const duplicatePerson = persons.find(p => p.name === person.name);
+
+  person.id = id;
+
+  if (!person.name || !person.number) {
+    return res.status(400).json({
+      error: "name or number missing"
+    });
+  }
+
+  if (duplicatePerson) {
+    return res.status(400).json({ error: "name must be unique" });
+  }
+
+  persons = persons.concat(person);
+
+  res.json(person);
 });
 
 app.delete("/api/persons/:id", (req, res, next) => {
