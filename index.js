@@ -19,7 +19,7 @@ morgan.token("type", function(req, res) {
 
 app.get("/info", (req, res, next) => {
   const date = new Date();
-  Person.countDocuments({}, (err, count) => {
+  Person.countDocuments({}).then(count => {
     res.send(`<p>phonebook has info for ${count} persons </p>  ${date}`);
   });
 });
